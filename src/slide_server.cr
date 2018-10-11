@@ -2,7 +2,7 @@ require "baked_file_system"
 require "http/server"
 
 module SlideServer
-  VERSION = "0.1.1"
+  VERSION = "0.1.2"
 
   class FileStorage
     extend BakedFileSystem
