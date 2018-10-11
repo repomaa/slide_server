@@ -1,0 +1,47 @@
+stages:
+  - test
+  - build
+  - release
+
+test:
+  stage: test
+  image: crystallang/crystal
+  script:
+    - shards install
+    - bin/ameba
+
+build:
+  stage: build
+  image: docker:stable
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+  script:
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - export REGISTRY_NAME="$DOCKER_USERNAME/$CI_PROJECT_NAME"
+    - docker pull $REGISTRY_NAME:latest || true
+    - docker build --cache-from $REGISTRY_NAME:latest -t $REGISTRY_NAME:$CI_COMMIT_REF_SLUG -t $REGISTRY_NAME:$CI_COMMIT_SHA .
+    - docker push $REGISTRY_NAME:$CI_COMMIT_REF_SLUG
+    - docker push $REGISTRY_NAME:$CI_COMMIT_SHA
+  only:
+    - master
+  tags:
+    - docker
+
+release:
+  image: docker:stable
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+  stage: release
+  script:
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - export REGISTRY_NAME="$DOCKER_USERNAME/$CI_PROJECT_NAME"
+    - docker pull $REGISTRY_NAME:$CI_COMMIT_SHA
+    - docker tag $REGISTRY_NAME:$CI_COMMIT_SHA $REGISTRY_NAME:$CI_COMMIT_TAG
+    - docker tag $REGISTRY_NAME:$CI_COMMIT_SHA $REGISTRY_NAME:latest
+    - docker push $REGISTRY_NAME:$CI_COMMIT_TAG
+    - docker push $REGISTRY_NAME:latest
+  only:
+    - tags
+  tags:
+    - docker
