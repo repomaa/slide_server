@@ -80,7 +80,8 @@ module SlideServer
     server = HTTP::Server.new([
       slide_path_handler(path),
       static_file_handler,
-      slides_handler(path)
+      slides_handler(path),
+      HTTP::StaticFileHandler.new(path)
     ])
 
     host = ENV.fetch("SLIDE_SERVER_HOST", "localhost")
