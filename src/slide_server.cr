@@ -14,9 +14,7 @@ module SlideServer
 
     def call(context)
       path = context.request.path
-      file = FileStorage.get?(
-        path[-1] == '/' ? "#{path}index.html" : path
-      )
+      file = FileStorage.get?(path)
       return call_next(context) if file.nil?
       context.response.content_type = file.mime_type
       IO.copy(file, context.response)
