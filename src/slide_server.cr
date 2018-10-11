@@ -57,7 +57,7 @@ module SlideServer
     end
 
     def call(context)
-      return call_next(context) unless context.request.path[-3..-1] == ".md"
+      return call_next(context) unless context.request.path =~ /\.md$/
       path = File.join(@path, context.request.path)
       return call_next(context) unless File.exists?(path)
       context.response.cookies["SlidePath"] = context.request.path
