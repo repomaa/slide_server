@@ -28,6 +28,7 @@ build:
     - docker push $REGISTRY_NAME:$CI_COMMIT_SHA
   only:
     - master
+    - tags
   tags:
     - docker
 
