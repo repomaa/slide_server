@@ -9,6 +9,8 @@ test:
   script:
     - shards install
     - bin/ameba
+  except:
+    - tags
 
 build:
   stage: build
