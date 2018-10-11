@@ -13,6 +13,8 @@ test:
 build:
   stage: build
   image: docker:stable
+  services:
+    - docker:dind
   variables:
     DOCKER_HOST: tcp://docker:2375
   script:
@@ -29,6 +31,8 @@ build:
 
 release:
   image: docker:stable
+  services:
+    - docker:dind
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
@@ -41,6 +45,7 @@ release:
     - docker tag $REGISTRY_NAME:$CI_COMMIT_SHA $REGISTRY_NAME:latest
     - docker push $REGISTRY_NAME:$CI_COMMIT_TAG
     - docker push $REGISTRY_NAME:latest
+    - docker 
   only:
     - tags
   tags:
