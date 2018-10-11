@@ -13,6 +13,10 @@ dependencies:
     github: schovi/baked_file_system
     branch: master
 
+development_dependencies:
+  ameba:
+    github: veelenga/ameba
+
 crystal: 0.26.1
 
 license: MIT
