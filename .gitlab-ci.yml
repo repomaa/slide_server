@@ -31,6 +31,9 @@ build:
 
 release:
   image: docker:stable
+  artifacts:
+    paths:
+      - slide_server
   services:
     - docker:dind
   variables:
@@ -45,7 +48,9 @@ release:
     - docker tag $REGISTRY_NAME:$CI_COMMIT_SHA $REGISTRY_NAME:latest
     - docker push $REGISTRY_NAME:$CI_COMMIT_TAG
     - docker push $REGISTRY_NAME:latest
-    - docker 
+    - container_id=$(docker create $REGISTRY_NAME:latest)
+    - docker cp $container_id:/bin/slide_server slide_server
+    - docker rm -v $container_id
   only:
     - tags
   tags:
