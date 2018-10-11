@@ -1,0 +1,6 @@
+version: 1.0
+shards:
+  baked_file_system:
+    github: schovi/baked_file_system
+    commit: 9b7de9819f82a578ef8b6858b01c8754a165b399
+

@@ -1,0 +1,42 @@
+language: crystal
+sudo: true
+dist: trusty
+stages:
+- name: build docker image
+  if: branch = master
+- name: release
+  if: tag IS present
+jobs:
+  include:
+  - stage: build docker image
+    script:
+    - perl -E 'say for keys %ENV'
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - docker build -t slide_server .
+    - docker images
+    - docker tag slide_server $DOCKER_USERNAME/slide_server:latest
+    - docker tag slide_server $DOCKER_USERNAME/slide_server:$TRAVIS_COMMIT
+    - docker push $DOCKER_USERNAME/slide_server:$TRAVIS_COMMIT
+  - stage: release
+    script:
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - docker pull $DOCKER_USERNAME/slide_server:$TRAVIS_COMMIT
+    - docker tag $DOCKER_USERNAME/slide_server:$TRAVIS_COMMIT $DOCKER_USERNAME/slide_server:$TRAVIS_TAG
+    - docker tag $DOCKER_USERNAME/slide_server:$TRAVIS_COMMIT $DOCKER_USERNAME/slide_server:latest
+    - docker push $DOCKER_USERNAME/slide_server:$TRAVIS_TAG
+    - docker push $DOCKER_USERNAME/slide_server:latest
+    - container_id=$(docker create $DOCKER_USERNAME/slide_server:latest)
+    - docker cp $container_id:/bin/slide_server slide_server
+    - docker rm -v $container_id
+env:
+  global:
+  - DOCKER_USERNAME: jreinert
+  - secure: 2VPbonjBfZE1EAL+dDQYULKgjlTsX8Ypuq89UMAs/37nmt+r43N5gLssI2+l6e1gaiCdCvvyjdZBrgLKobWxYJEKdYMyvZ2mL6h15wLcR5+BokzVARp24x0tZw6hKtLXLEZHt4H14vbdTDNd50DGxoQu+Ag+CfioxNzip8hfIpaz1WfHVRHyeSLl3gReeXVNcbQSSSiK9b+gbJUaZ3MCmRJcL0acoYSvTyiRE22jJPu1E9kYWy8Q5Ihbl4EwlMU1TZMCdurqanpOo82oiY5cGJ1QrF2Mw3/t4LdHdGUewXxSFcrFiWn+FoRVxxmAxVC2vaE8ZdPXdlOdTh0CJHCVeT//IUQOIVlVsdXnqL4b4vCyqJ33axyzwwvU9x+VMJ7mIzw/JH3/Mkl0xwd1lx93E7an77CkVs0I3RbXWHq6n+K31/hTtqQTLYZWKKnIBbL2og8YXpnEWBgp8c+JKCkiNdi49ZTJzEf4fe7WzZNhWui7Ai+xZI+QTkhmEjDmnGUO48LsSbACvoZg2oSe7kc+3Jdx/DF7gBTi8e3DSWUAYOFMOpEOZ5p31SZEFT8IG98e+XE1DzS9cdGveWj/qpi2e+tuhEXr0TCiYcj1xuaYX9bUb13TfkFNJhd+KoFLNTen77HyeMP5G12PcScWIoix4cWjl0XCRoXtFfRFU7NEUBw=
+deploy:
+  provider: releases
+  api_key:
+    secure: Ey+0UWi2U0HT750oHXd40RXmYLcN5h2zgb0SOzu1gUsETbmnwDVIRaS4BTajEYA1T9gQz7fRMTmKRbURyk0ihjl5V6cw6mB5vMo9ShkkLG7w29s9m8BBOPOlXoFQsk4rBSLvcbZhIQ+fbEXgkZ0F8dtOMMhHpYlZyqlE3wgfU6jJzUx5tXQAfFDftqxnCIzq+qAqQJYc8FfCoJKpvyulU+ogDRUfVR42f3tdrj62vLECmgQBxkZTYfPpWuLFbZzol1Du6wG6GUbenDc5KFlA3tRBD89L0eSKgB9/spEtNENvREc3oxCOMe4F+e2uD+x1v6buAmYbnC/xerehKKVzqazlYAa07Xd67yQwcJLZCiabL6xa/oOAUYcLzcmxNE9cyYmNwys9oefhR+mDk517+412jSjoXy58fFoDpOfcyPGZ++4UBiUXJ4JsXiv8XsbeJqHqeAyeYEkiwxODEfkkMFaHbyIxCkGvVC3RyHWaH04iTXCznCqgqyDU7v+DJjQXYpFE8pZVur35+OMRgT1QJlqh29fxWqKl7KcVZV/S2j2+RJs/709Ec/u7YDdHV6zc5MJGmVbWZkGo828xWaqgEtJoW2GqhDEXc4Mi8rZorqy9MoPcRC3Kqi0cov/7UGZ48fM2gluUI6liRDQaJZlZUjIBpjCykmcY0/ILuPXMSgM=
+  file: slide_server
+  on:
+    repo: jreinert/slide_server
+    tags: true
